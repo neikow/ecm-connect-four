@@ -1,7 +1,7 @@
-const COLS = 7
-const ROWS = 6
+const COLS = 13
+const ROWS = 8
 
-const WIN_CONDITION = 4
+const WIN_CONDITION = 10
 
 const CELL_EMPTY = 0
 const CELL_PLAYER1 = 1
@@ -285,6 +285,9 @@ function addHoverEffect(boardContainer: HTMLDivElement) {
 
 export function startPowerFour() {
   const board = generateEmptyBoardData()
+
+  const gameWrapper = document.getElementById('game-wrapper')
+  gameWrapper?.style.setProperty('--number-of-cols', `repeat(${COLS}, minmax(0, 1fr))`)
 
   updateCurrentPlayerDisplay(currentPlayer)
 

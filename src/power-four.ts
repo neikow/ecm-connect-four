@@ -1,6 +1,8 @@
 const COLS = 7
 const ROWS = 6
 
+const WIN_CONDITION = 4
+
 const CELL_EMPTY = 0
 const CELL_PLAYER1 = 1
 const CELL_PLAYER2 = 2
@@ -84,7 +86,7 @@ export function hasWinner(board: Board): {
           && board[nr][nc] === cell
         ) {
           winningCells.push([nr, nc])
-          if (winningCells.length === 4) {
+          if (winningCells.length === WIN_CONDITION) {
             return { winner: cell, winningCells }
           }
           nr += dr

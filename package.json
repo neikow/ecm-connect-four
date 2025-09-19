@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
+    "js-confetti": "^0.13.1",
     "tailwindcss": "^4.1.13"
   }
 }

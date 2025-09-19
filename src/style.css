@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-    --color-background: #070b13;
-    --color-primary: #00E8FC;
+    --color-background: #ffffff;
+    --color-primary: #00b9fc;
     --color-secondary: #F96E46;
 
     --font-sans: "Space Grotesk", sans-serif;

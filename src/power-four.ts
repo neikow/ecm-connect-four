@@ -1,7 +1,9 @@
-const COLS = 13
-const ROWS = 8
+import JSConfetti from 'js-confetti'
 
-const WIN_CONDITION = 10
+const COLS = 7
+const ROWS = 6
+
+const WIN_CONDITION = 4
 
 const CELL_EMPTY = 0
 const CELL_PLAYER1 = 1
@@ -63,10 +65,10 @@ export function hasWinner(board: Board): {
   const COLS = board[0].length
 
   const directions = [
-    { dr: 0, dc: 1 }, // Horizontal
-    { dr: 1, dc: 0 }, // Vertical
-    { dr: 1, dc: 1 }, // Diagonal down-right
-    { dr: 1, dc: -1 }, // Diagonal down-left
+    { dRow: 0, dCol: 1 }, // Horizontal
+    { dRow: 1, dCol: 0 }, // Vertical
+    { dRow: 1, dCol: 1 }, // Diagonal down-right
+    { dRow: 1, dCol: -1 }, // Diagonal down-left
   ]
 
   for (let r = 0; r < ROWS; r++) {
@@ -75,10 +77,10 @@ export function hasWinner(board: Board): {
       if (cell === CELL_EMPTY)
         continue
 
-      for (const { dr, dc } of directions) {
+      for (const { dRow, dCol } of directions) {
         const winningCells: Coordinates[] = [[r, c]]
-        let nr = r + dr
-        let nc = c + dc
+        let nr = r + dRow
+        let nc = c + dCol
 
         while (
           nr >= 0 && nr < ROWS
@@ -89,8 +91,8 @@ export function hasWinner(board: Board): {
           if (winningCells.length === WIN_CONDITION) {
             return { winner: cell, winningCells }
           }
-          nr += dr
-          nc += dc
+          nr += dRow
+          nc += dCol
         }
       }
     }
@@ -124,7 +126,7 @@ function drawBoard(board: Board): HTMLDivElement {
       cell.dataset.row = r.toString()
       cell.dataset.col = c.toString()
 
-      cell.className = 'w-16 h-16 border border-gray-400 flex items-center justify-center cursor-pointer'
+      cell.className = 'w-16 h-16 border border-gray-400 flex items-center justify-center cursor-pointer shadow-inner'
       if (board[r][c] === CELL_PLAYER1) {
         cell.classList.add(PLAYER_1_BG_CLASS, 'rounded-full')
       }
@@ -132,7 +134,7 @@ function drawBoard(board: Board): HTMLDivElement {
         cell.classList.add(PLAYER_2_BG_CLASS, 'rounded-full')
       }
       else {
-        cell.classList.add('bg-white', 'rounded-full')
+        cell.classList.add('rounded-full')
       }
       cell.dataset.row = r.toString()
       cell.dataset.col = c.toString()
@@ -198,6 +200,14 @@ function handleWinner(result: { winner: number, winningCells: Coordinates[] }, b
       winningCell.classList.add('ring', 'ring-yellow-400', 'ring-4')
     }
   }
+
+  const confettis = new JSConfetti()
+  confettis.addConfetti({
+    emojis: ['🎉', '✨', '🥳', '🏆', '🎊'],
+    emojiSize: 100,
+    confettiNumber: 60,
+  })
+
   removeClickListeners()
 }
 

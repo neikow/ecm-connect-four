@@ -1,9 +1,14 @@
+const COLS = 7
+const ROWS = 6
+
 const CELL_EMPTY = 0
 const CELL_PLAYER1 = 1
 const CELL_PLAYER2 = 2
 
 const PLAYER_1_TEXT_CLASS = 'text-primary'
 const PLAYER_2_TEXT_CLASS = 'text-secondary'
+const TEXT_DEFAULT_CLASS = 'text-white'
+
 const PLAYER_1_BG_CLASS = 'cell-player-1'
 const PLAYER_2_BG_CLASS = 'cell-player-2'
 
@@ -19,16 +24,17 @@ export function updateStatus(status: 'player1' | 'player2' | 'draw' | '') {
 
   if (status === 'player1') {
     statusDiv.textContent = 'Player 1 wins!'
-    statusDiv.classList.remove(PLAYER_2_TEXT_CLASS)
+    statusDiv.classList.remove(PLAYER_2_TEXT_CLASS, TEXT_DEFAULT_CLASS)
     statusDiv.classList.add(PLAYER_1_TEXT_CLASS)
   }
   else if (status === 'player2') {
     statusDiv.textContent = 'Player 2 wins!'
-    statusDiv.classList.remove(PLAYER_1_TEXT_CLASS)
+    statusDiv.classList.remove(PLAYER_1_TEXT_CLASS, TEXT_DEFAULT_CLASS)
     statusDiv.classList.add(PLAYER_2_TEXT_CLASS)
   }
   else if (status === 'draw') {
     statusDiv.textContent = 'Game is a draw!'
+    statusDiv.classList.add(TEXT_DEFAULT_CLASS)
     statusDiv.classList.remove(PLAYER_1_TEXT_CLASS, PLAYER_2_TEXT_CLASS)
   }
   else {
@@ -92,9 +98,6 @@ export function hasWinner(board: Board): {
 }
 
 export function generateEmptyBoardData(): Board {
-  const ROWS = 6
-  const COLS = 7
-
   const board: Board = []
   for (let r = 0; r < ROWS; r++) {
     const row: number[] = []
@@ -151,11 +154,10 @@ function updateCurrentPlayerDisplay(player: number) {
   if (!currentPlayerSpan)
     throw new Error('Current player span not found')
 
-  currentPlayerSpan.textContent = player === CELL_PLAYER1 ? 'Player 1' : 'Player 2'
-  const playerColor = player === CELL_PLAYER1 ? PLAYER_1_TEXT_CLASS : PLAYER_2_TEXT_CLASS
+  const gameWrapper = document.getElementById('game-wrapper')
+  gameWrapper?.style.setProperty('--current-player-color', player === CELL_PLAYER1 ? 'var(--color-primary)' : 'var(--color-secondary)')
 
-  currentPlayerSpan.classList.remove(PLAYER_1_TEXT_CLASS, PLAYER_2_TEXT_CLASS)
-  currentPlayerSpan.classList.add(playerColor)
+  currentPlayerSpan.textContent = player === CELL_PLAYER1 ? 'Player 1' : 'Player 2'
 }
 
 function updateCellButton(row: number, col: number, value: number, boardContainer: HTMLDivElement) {
@@ -259,6 +261,26 @@ function addResetListener() {
   resetButton.addEventListener('click', resetGame)
 }
 
+function addHoverEffect(boardContainer: HTMLDivElement) {
+  const classes = ['ring', 'ring-2', 'ring-(--current-player-color)']
+  for (const cell of boardContainer.children) {
+    const div = cell as HTMLDivElement
+    const col = Number.parseInt(div.dataset.col || '0', 10)
+    div.addEventListener('mouseenter', () => {
+      document.querySelectorAll(`button[data-col='${col}']`).forEach((cell) => {
+        if (cell.classList.contains(PLAYER_1_BG_CLASS) || cell.classList.contains(PLAYER_2_BG_CLASS))
+          return
+        cell.classList.add(...classes)
+      })
+    })
+    div.addEventListener('mouseleave', () => {
+      document.querySelectorAll(`button[data-col='${col}']`).forEach((cell) => {
+        cell.classList.remove(...classes)
+      })
+    })
+  }
+}
+
 export function startPowerFour() {
   const board = generateEmptyBoardData()
 
@@ -268,6 +290,7 @@ export function startPowerFour() {
 
   addClickListeners(board, boardContainer)
   addResetListener()
+  addHoverEffect(boardContainer)
 
   toggleResetVisibility(false)
 }

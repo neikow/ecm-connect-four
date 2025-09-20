@@ -36,7 +36,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
               <span id='draws' class='font-semibold text-neutral-500'>0</span>
            </div>
         </div>
-        <div id='history' class='flex flex-col gap-2 flex-nowrap flex-1 overflow-y-auto'>
+        <div id='history' class='flex flex-col gap-2 flex-nowrap items-center flex-1 overflow-y-auto'>
             <span class='text-neutral-500'>No previous games</span>
         </div>
       </div>

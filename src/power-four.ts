@@ -11,16 +11,16 @@ const CELL_PLAYER2 = 2
 
 const PLAYER_1_TEXT_CLASS = 'text-primary'
 const PLAYER_2_TEXT_CLASS = 'text-secondary'
-const TEXT_DEFAULT_CLASS = 'text-white'
+const TEXT_DEFAULT_CLASS = 'text-black'
 
 const PLAYER_1_BG_CLASS = 'cell-player-1'
 const PLAYER_2_BG_CLASS = 'cell-player-2'
 
-const BG_DEFAULT_CLASS = 'bg-white'
+const BG_DEFAULT_CLASS = 'bg-(--current-player-color)/5'
 
 let currentPlayer = CELL_PLAYER1
 
-const DEFAULT_CELL_CLASSES = 'w-16 h-16 flex items-center justify-center rounded-full'
+const DEFAULT_CELL_CLASSES = `w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer ${BG_DEFAULT_CLASS} shadow-inner`
 const WINNING_CELL_CLASSES = ['ring', 'ring-yellow-400', 'ring-4']
 
 type Board = number[][]
@@ -125,7 +125,7 @@ function drawBoard(board: Board): HTMLDivElement {
       cell.dataset.row = r.toString()
       cell.dataset.col = c.toString()
 
-      cell.className = 'w-16 h-16 border border-gray-400 flex items-center justify-center cursor-pointer shadow-inner'
+      cell.className = DEFAULT_CELL_CLASSES
       if (board[r][c] === CELL_PLAYER1) {
         cell.classList.add(PLAYER_1_BG_CLASS, 'rounded-full')
       }
@@ -144,6 +144,20 @@ function drawBoard(board: Board): HTMLDivElement {
   return boardDiv
 }
 
+function updateWebsiteTitle(title: string) {
+  const websiteTitle = document.querySelector('title') as HTMLTitleElement | null
+  if (websiteTitle) {
+    websiteTitle.textContent = title
+  }
+}
+
+function updateWebsiteIcon(iconUrl: string) {
+  const websiteIcon = document.querySelector('link[rel~=\'icon\']') as HTMLLinkElement | null
+  if (websiteIcon) {
+    websiteIcon.href = iconUrl
+  }
+}
+
 function toggleResetVisibility(visible: boolean) {
   const resetButton = document.getElementById('reset')
   if (!resetButton)
@@ -160,24 +174,13 @@ function updateCurrentPlayerDisplay(player: number) {
   const gameWrapper = document.getElementById('game-wrapper')
   gameWrapper?.style.setProperty('--current-player-color', player === CELL_PLAYER1 ? 'var(--color-primary)' : 'var(--color-secondary)')
 
-  const websiteIcon = document.querySelector('link[rel~=\'icon\']') as HTMLLinkElement | null
-  if (websiteIcon) {
-    websiteIcon.href = player === CELL_PLAYER1 ? 'player1.svg' : 'player2.svg'
-  }
-
-  const websiteTitle = document.querySelector('title') as HTMLTitleElement | null
-  if (websiteTitle) {
-    websiteTitle.textContent = player === CELL_PLAYER1 ? 'Player 1\'s turn - Connect Four' : 'Player 2\'s turn - Connect Four'
-  }
+  updateWebsiteIcon(player === CELL_PLAYER1 ? 'player1.svg' : 'player2.svg')
+  updateWebsiteTitle(player === CELL_PLAYER1 ? 'Player 1\'s turn - Connect Four' : 'Player 2\'s turn - Connect Four')
 
   currentPlayerSpan.textContent = player === CELL_PLAYER1 ? 'Player 1' : 'Player 2'
 }
 
-function updateCellButton(row: number, col: number, value: number, boardContainer: HTMLDivElement) {
-  const cell = boardContainer.querySelector(`button[data-row='${row}'][data-col='${col}']`)
-  if (!cell)
-    return
-  cell.className = DEFAULT_CELL_CLASSES
+function setCellColor(cell: HTMLButtonElement, value: number) {
   cell.classList.remove(PLAYER_1_BG_CLASS, PLAYER_2_BG_CLASS, BG_DEFAULT_CLASS)
   if (value === CELL_PLAYER1) {
     cell.classList.add(PLAYER_1_BG_CLASS)
@@ -190,6 +193,15 @@ function updateCellButton(row: number, col: number, value: number, boardContaine
   }
 }
 
+function updateCellButton(row: number, col: number, value: number, boardContainer: HTMLDivElement) {
+  const cell = boardContainer.querySelector<HTMLButtonElement>(`button[data-row='${row}'][data-col='${col}']`)
+  if (!cell)
+    return
+  cell.className = DEFAULT_CELL_CLASSES
+
+  setCellColor(cell, value)
+}
+
 const eventListeners: [HTMLDivElement, () => void][] = []
 
 function removeClickListeners() {
@@ -200,6 +212,7 @@ function removeClickListeners() {
 
 function handleWinner(result: { winner: number, winningCells: Coordinates[] }, boardContainer: HTMLDivElement) {
   updateStatus(result.winner === CELL_PLAYER1 ? 'player1' : 'player2')
+  updateWebsiteTitle(result.winner === CELL_PLAYER1 ? 'Player 1 wins! - Connect Four' : 'Player 2 wins! - Connect Four')
 
   toggleResetVisibility(true)
 
@@ -217,12 +230,21 @@ function handleWinner(result: { winner: number, winningCells: Coordinates[] }, b
     confettiNumber: 60,
   })
 
+  saveGameResult(result.winner === CELL_PLAYER1 ? 'player1' : 'player2')
+  syncHistory()
+  syncScoreboard()
+
   removeClickListeners()
 }
 
 function handleDraw() {
   updateStatus('draw')
   toggleResetVisibility(true)
+
+  saveGameResult('draw')
+  syncHistory()
+  syncScoreboard()
+
   removeClickListeners()
 }
 
@@ -276,7 +298,7 @@ function addClickListeners(board: number[][], boardContainer: HTMLDivElement) {
   }
 }
 
-function addResetListener() {
+function addResetGameListener() {
   const resetButton = document.getElementById('reset')
   if (!resetButton)
     throw new Error('Reset button not found')
@@ -304,8 +326,108 @@ function addHoverEffect(boardContainer: HTMLDivElement) {
   }
 }
 
+function saveGameResult(winner: 'player1' | 'player2' | 'draw') {
+  const history = JSON.parse(localStorage.getItem('powerFourHistory') || '[]') as {
+    date: string
+    winner: 'player1' | 'player2' | 'draw'
+  }[]
+
+  history.unshift({
+    date: new Date().toISOString(),
+    winner,
+  })
+
+  if (history.length > 20) {
+    history.pop()
+  }
+
+  localStorage.setItem('powerFourHistory', JSON.stringify(history))
+}
+
+function syncScoreboard() {
+  const history = JSON.parse(localStorage.getItem('powerFourHistory') || '[]') as {
+    date: string
+    winner: 'player1' | 'player2' | 'draw'
+  }[]
+
+  const player1Wins = history.filter(game => game.winner === 'player1').length
+  const player2Wins = history.filter(game => game.winner === 'player2').length
+  const draws = history.filter(game => game.winner === 'draw').length
+
+  const player1WinsSpan = document.getElementById('player1Wins')
+  const player2WinsSpan = document.getElementById('player2Wins')
+  const drawsSpan = document.getElementById('draws')
+
+  if (!player1WinsSpan || !player2WinsSpan || !drawsSpan)
+    throw new Error('Scoreboard spans not found')
+
+  player1WinsSpan.textContent = player1Wins.toString()
+  player2WinsSpan.textContent = player2Wins.toString()
+  drawsSpan.textContent = draws.toString()
+}
+
+function syncHistory() {
+  const historyDiv = document.getElementById('history')
+  if (!historyDiv)
+    throw new Error('History div not found')
+
+  const history = JSON.parse(localStorage.getItem('powerFourHistory') || '[]') as {
+    date: string
+    winner: 'player1' | 'player2' | 'draw'
+  }[]
+
+  if (history.length === 0) {
+    historyDiv.innerHTML = 'No previous games'
+    return
+  }
+
+  historyDiv.innerHTML = ''
+  for (const game of history) {
+    const winnerColorClass = game.winner === 'draw'
+      ? TEXT_DEFAULT_CLASS
+      : game.winner === 'player1'
+        ? PLAYER_1_TEXT_CLASS
+        : PLAYER_2_TEXT_CLASS
+    const gameDiv = document.createElement('div')
+
+    const date = new Date(game.date)
+    const dateString = date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    gameDiv.classList.add('flex', 'justify-between', 'w-full', 'items-center', 'border-b', 'border-neutral-300', 'pb-1')
+
+    gameDiv.innerHTML = `
+      <span class="font-black ${winnerColorClass}">${game.winner === 'draw' ? 'Draw' : game.winner === 'player1' ? 'Player 1' : 'Player 2'}</span>
+      <span class="text-neutral-500 text-xs">${dateString}</span>     
+    `
+
+    historyDiv.appendChild(gameDiv)
+  }
+}
+
+function addResetHistoryListener() {
+  const resetHistoryButton = document.getElementById('resetHistory')
+  if (!resetHistoryButton)
+    throw new Error('Reset history button not found')
+
+  resetHistoryButton.addEventListener('click', () => {
+    // eslint-disable-next-line no-alert
+    if (!confirm('Are you sure you want to reset the game history? This action cannot be undone.'))
+      return
+
+    localStorage.removeItem('powerFourHistory')
+    syncHistory()
+    syncScoreboard()
+  })
+}
+
 function initGame() {
-  currentPlayer = CELL_PLAYER1
+  currentPlayer = Math.random() < 0.5 ? CELL_PLAYER1 : CELL_PLAYER2
   updateStatus('')
 
   const gameWrapper = document.getElementById('game-wrapper')
@@ -320,10 +442,14 @@ function initGame() {
   addClickListeners(board, boardContainer)
   addHoverEffect(boardContainer)
   toggleResetVisibility(false)
+
+  syncHistory()
+  syncScoreboard()
 }
 
 export function startPowerFour() {
   initGame()
 
-  addResetListener()
+  addResetGameListener()
+  addResetHistoryListener()
 }

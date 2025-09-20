@@ -1,0 +1,16 @@
+const COLS = 7
+const ROWS = 6
+const WIN_CONDITION = 4
+
+const CELL_EMPTY = 0
+const CELL_PLAYER1 = 1
+const CELL_PLAYER2 = 2
+
+export {
+  CELL_EMPTY,
+  CELL_PLAYER1,
+  CELL_PLAYER2,
+  COLS,
+  ROWS,
+  WIN_CONDITION,
+}

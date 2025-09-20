@@ -16,7 +16,12 @@ const TEXT_DEFAULT_CLASS = 'text-white'
 const PLAYER_1_BG_CLASS = 'cell-player-1'
 const PLAYER_2_BG_CLASS = 'cell-player-2'
 
+const BG_DEFAULT_CLASS = 'bg-white'
+
 let currentPlayer = CELL_PLAYER1
+
+const DEFAULT_CELL_CLASSES = 'w-16 h-16 flex items-center justify-center rounded-full'
+const WINNING_CELL_CLASSES = ['ring', 'ring-yellow-400', 'ring-4']
 
 type Board = number[][]
 type Coordinates = [number, number]
@@ -48,13 +53,7 @@ export function updateStatus(status: 'player1' | 'player2' | 'draw' | '') {
 }
 
 export function resetGame() {
-  currentPlayer = CELL_PLAYER1
-  const board = generateEmptyBoardData()
-  const boardContainer = drawBoard(board)
-  updateStatus('')
-  addClickListeners(board, boardContainer)
-  toggleResetVisibility(false)
-  updateCurrentPlayerDisplay(currentPlayer)
+  initGame()
 }
 
 export function hasWinner(board: Board): {
@@ -161,6 +160,16 @@ function updateCurrentPlayerDisplay(player: number) {
   const gameWrapper = document.getElementById('game-wrapper')
   gameWrapper?.style.setProperty('--current-player-color', player === CELL_PLAYER1 ? 'var(--color-primary)' : 'var(--color-secondary)')
 
+  const websiteIcon = document.querySelector('link[rel~=\'icon\']') as HTMLLinkElement | null
+  if (websiteIcon) {
+    websiteIcon.href = player === CELL_PLAYER1 ? 'player1.svg' : 'player2.svg'
+  }
+
+  const websiteTitle = document.querySelector('title') as HTMLTitleElement | null
+  if (websiteTitle) {
+    websiteTitle.textContent = player === CELL_PLAYER1 ? 'Player 1\'s turn - Connect Four' : 'Player 2\'s turn - Connect Four'
+  }
+
   currentPlayerSpan.textContent = player === CELL_PLAYER1 ? 'Player 1' : 'Player 2'
 }
 
@@ -168,8 +177,8 @@ function updateCellButton(row: number, col: number, value: number, boardContaine
   const cell = boardContainer.querySelector(`button[data-row='${row}'][data-col='${col}']`)
   if (!cell)
     return
-  cell.className = 'w-16 h-16 flex items-center justify-center rounded-full'
-  cell.classList.remove(PLAYER_1_BG_CLASS, PLAYER_2_BG_CLASS, 'bg-white')
+  cell.className = DEFAULT_CELL_CLASSES
+  cell.classList.remove(PLAYER_1_BG_CLASS, PLAYER_2_BG_CLASS, BG_DEFAULT_CLASS)
   if (value === CELL_PLAYER1) {
     cell.classList.add(PLAYER_1_BG_CLASS)
   }
@@ -177,7 +186,7 @@ function updateCellButton(row: number, col: number, value: number, boardContaine
     cell.classList.add(PLAYER_2_BG_CLASS)
   }
   else {
-    cell.classList.add('bg-white')
+    cell.classList.add(BG_DEFAULT_CLASS)
   }
 }
 
@@ -197,7 +206,7 @@ function handleWinner(result: { winner: number, winningCells: Coordinates[] }, b
   for (const [wr, wc] of result.winningCells) {
     const winningCell = boardContainer.querySelector(`button[data-row='${wr}'][data-col='${wc}']`)
     if (winningCell) {
-      winningCell.classList.add('ring', 'ring-yellow-400', 'ring-4')
+      winningCell.classList.add(...WINNING_CELL_CLASSES)
     }
   }
 
@@ -245,11 +254,13 @@ function createClickHandler(cell: Element, board: number[][], boardContainer: HT
     const result = hasWinner(board)
     if (result) {
       handleWinner(result, boardContainer)
+      return
     }
 
     const isDraw = hasDraw(board)
     if (isDraw) {
       handleDraw()
+      return
     }
 
     currentPlayer = currentPlayer === CELL_PLAYER1 ? CELL_PLAYER2 : CELL_PLAYER1
@@ -293,19 +304,26 @@ function addHoverEffect(boardContainer: HTMLDivElement) {
   }
 }
 
-export function startPowerFour() {
-  const board = generateEmptyBoardData()
+function initGame() {
+  currentPlayer = CELL_PLAYER1
+  updateStatus('')
 
   const gameWrapper = document.getElementById('game-wrapper')
   gameWrapper?.style.setProperty('--number-of-cols', `repeat(${COLS}, minmax(0, 1fr))`)
+
+  const board = generateEmptyBoardData()
 
   updateCurrentPlayerDisplay(currentPlayer)
 
   const boardContainer = drawBoard(board)
 
   addClickListeners(board, boardContainer)
-  addResetListener()
   addHoverEffect(boardContainer)
-
   toggleResetVisibility(false)
+}
+
+export function startPowerFour() {
+  initGame()
+
+  addResetListener()
 }

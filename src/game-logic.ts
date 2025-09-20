@@ -1,7 +1,14 @@
 import type { Board, Coordinates } from './types.ts'
 import { CELL_EMPTY, CELL_PLAYER1, CELL_PLAYER2, WIN_CONDITION } from './consts.ts'
 import { saveGameResult, syncHistory, syncScoreboard } from './game-history.ts'
-import { toggleResetVisibility, updateCellButton, updateCurrentPlayerDisplay } from './game-interface.ts'
+import {
+  playDrawSound,
+  playFallSound,
+  playWinnerSound,
+  toggleResetVisibility,
+  updateCellButton,
+  updateCurrentPlayerDisplay,
+} from './game-interface.ts'
 import { drawConfetti, updateStatus, updateWebsiteTitle } from './interface-utils.ts'
 import { WINNING_CELL_CLASSES } from './styles.ts'
 
@@ -71,6 +78,8 @@ export function handleWinner(result: { winner: number, winningCells: Coordinates
   syncHistory()
   syncScoreboard()
 
+  playWinnerSound()
+
   removeClickListeners()
 }
 
@@ -81,6 +90,8 @@ export function handleDraw() {
   saveGameResult('draw')
   syncHistory()
   syncScoreboard()
+
+  playDrawSound()
 
   removeClickListeners()
 }
@@ -120,6 +131,9 @@ export function createClickHandler(cell: Element, board: number[][], boardContai
     if (placedRow === null) {
       return
     }
+
+    playFallSound()
+
     updateCellButton(placedRow, col, window.currentPlayer, boardContainer)
 
     const result = hasWinner(board)

@@ -65,3 +65,26 @@ export function toggleResetVisibility(visible: boolean) {
 
   resetButton.style.display = visible ? 'block' : 'none'
 }
+
+export function playSound(soundId: 'coin-fall-sound' | 'winner-sound' | 'draw-sound', volume: number = 1) {
+  const sound = document.getElementById(soundId) as HTMLAudioElement | null
+  if (sound) {
+    sound.currentTime = 0
+    sound.volume = volume
+    sound.play().catch((err) => {
+      console.error('Error playing fall sound:', err)
+    })
+  }
+}
+
+export function playFallSound() {
+  playSound('coin-fall-sound', 0.5)
+}
+
+export function playWinnerSound() {
+  playSound('winner-sound')
+}
+
+export function playDrawSound() {
+  playSound('draw-sound')
+}

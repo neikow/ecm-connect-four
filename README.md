@@ -74,10 +74,10 @@
 
 ## Améliorations possibles
 
-- Ajouter une option pour jouer contre une IA avec différents niveaux de difficulté.
-- Ajouter des animations supplémentaires pour rendre le jeu plus dynamique.
-- Ajouter des sons pour les actions du jeu (placement de jeton, victoire, égalité, etc.).
-- Ajouter un mode multijoueur en ligne pour jouer contre des amis. ← Peut être très marrant à faire avec les
+- [ ] Ajouter une option pour jouer contre une IA avec différents niveaux de difficulté.
+- [ ] Ajouter des animations supplémentaires pour rendre le jeu plus dynamique.
+- [x] Ajouter des sons pour les actions du jeu (placement de jeton, victoire, égalité, etc.).
+- [ ] Ajouter un mode multijoueur en ligne pour jouer contre des amis. ← Peut être très marrant à faire avec les
   WebSockets mais nécessite un backend.
 
 ## Conclusion
